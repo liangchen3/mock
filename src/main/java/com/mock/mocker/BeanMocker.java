@@ -4,11 +4,9 @@ import com.mock.MockConfig;
 import com.mock.MockException;
 import com.mock.Mocker;
 import com.mock.annotation.MockIgnore;
+import com.mock.annotation.MockRule;
 import com.mock.util.ReflectionUtils;
-import org.hibernate.validator.HibernateValidator;
-import org.hibernate.validator.constraints.Length;
 
-import javax.validation.groups.Default;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map.Entry;
@@ -59,34 +57,28 @@ public class BeanMocker implements Mocker<Object> {
      * @param mockConfig
      */
     private void setHibernate(Entry<Field, Method> entry, MockConfig mockConfig) {
-        //判断是否开启 hibernate注解赋值
-        if (!mockConfig.isEnableHibernateAnnonation()) {
+        //判断是否开启 注解赋值
+        if (!mockConfig.isEnableAnnonation()) {
             return;
         }
 
         Field field = entry.getKey();
-        Class targetGroup = mockConfig.getHibernateGroup();
-        if (field.isAnnotationPresent(Length.class)) {
-            Length length = entry.getKey().getAnnotation(Length.class);
-            if (0 == length.groups().length) {
-                int[] beanFieldSizeRange = {length.min(), length.max()};
-                mockConfig.registerFieldSize(beanFieldSizeRange);
-                return;
-            }
-            for (Class group : length.groups()) {
-                if (targetGroup.equals(group)) {
-                    int[] beanFieldSizeRange = {length.min(), length.max()};
-                    mockConfig.registerFieldSize(beanFieldSizeRange);
-                } else {
-                    int[] beanFieldSizeRange = {mockConfig.getSizeRange()[0], mockConfig.getSizeRange()[1]};
-                    mockConfig.registerFieldSize(beanFieldSizeRange);
+        if (field.isAnnotationPresent(MockRule.class)) {
+            MockRule mockRule = entry.getKey().getAnnotation(MockRule.class);
+            int order = mockRule.order();
+            int[] sizeRange;
+            if (order != Integer.MIN_VALUE) {
+                sizeRange = mockConfig.getCustomSizeRange(order);
+                if (null == sizeRange) {
+                    sizeRange = mockRule.defaultSize();
                 }
+            } else {
+                sizeRange = mockConfig.getSizeRange();
             }
+            mockConfig.putTempSizeRange(sizeRange);
         } else {
-            int[] beanFieldSizeRange = {mockConfig.getSizeRange()[0], mockConfig.getSizeRange()[1]};
-            mockConfig.registerFieldSize(beanFieldSizeRange);
+            mockConfig.putTempSizeRange(mockConfig.getSizeRange());
         }
-
     }
 
 }

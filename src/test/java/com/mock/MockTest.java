@@ -454,8 +454,12 @@ public class MockTest {
         System.out.println(genericSuperclass instanceof ParameterizedType);
     }
 
+    /**
+     * 测试注解 @MockRule
+     */
     @Test
-    public void testlc() {
+    public void testAnnotation() {
+        int[] range = {3, 3};
         MockConfig mockConfig = new MockConfig()
                 .byteRange((byte) 0, Byte.MAX_VALUE)
                 .shortRange((short) 0, Short.MAX_VALUE)
@@ -468,11 +472,11 @@ public class MockTest {
                 .stringSeed("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
                 .charSeed((char) 97, (char) 98)
                 .setStringEnum(MockConfig.StringEnum.CHARACTER)
-                .setEnableHibernate(true)
-                .setHibernateGroup(update.class);
+                .setEnableAnnonation(true)
+                .setCustomSizeRange(4, range);
 
-        TransDetail transDetail = Mock.mock(new TypeKit<TransDetail>() {
+        List<AnnotationBean> annotationBeanList = Mock.mock(new TypeKit<List<AnnotationBean>>() {
         }, mockConfig);
-        System.out.println(JsonUtil.toStr(transDetail));
+        System.out.println(JsonUtil.toStr(annotationBeanList));
     }
 }

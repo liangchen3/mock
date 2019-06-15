@@ -14,7 +14,6 @@ import com.mock.mocker.LongMocker;
 import com.mock.mocker.ShortMocker;
 import com.mock.mocker.StringMocker;
 
-import javax.validation.groups.Default;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -23,6 +22,7 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 模拟数据配置类
@@ -68,7 +68,16 @@ public class MockConfig {
     private static final StringMocker STRING_MOCKER = new StringMocker();
     private static final DateMocker DATE_MOCKER = new DateMocker("1970-01-01", "2100-12-31");
 
-    private Map<String, int[]> beanFieldsSizeRange = new HashMap<>();
+
+    /**
+     * 定制化数据大小范围
+     */
+    private Map<Integer, int[]> customSizeRange = new ConcurrentHashMap<>();
+    /**
+     * 临时存放数据大小范围的map ，  ConcurrentHashMap是线程安全的Map
+     * 最重要的是性能要比上HashMap,SynchronizedMap要快太多，推荐使用
+     */
+    private Map<String, int[]> tempSizeRange = new ConcurrentHashMap<>();
     /**
      * 默认为中文
      */
@@ -95,8 +104,7 @@ public class MockConfig {
     private String[] dateRange = {"1970-01-01", "2100-12-31"};
     private int[] sizeRange = {2, 20};
     private boolean enabledCircle = false;
-    private boolean enableHibernateAnnonation = false;
-    private Class hibernateGroup = Default.class;
+    private boolean enableAnnonation = false;
 
     private char[] charSeed =
             {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k',
@@ -279,30 +287,32 @@ public class MockConfig {
         return this;
     }
 
-    public MockConfig setEnableHibernate(boolean enabledHibernate) {
-        this.enableHibernateAnnonation = enabledHibernate;
+    public MockConfig setEnableAnnonation(boolean enabledAnnonation) {
+        this.enableAnnonation = enabledAnnonation;
         return this;
     }
 
-    public boolean isEnableHibernateAnnonation() {
-        return enableHibernateAnnonation;
+    public boolean isEnableAnnonation() {
+        return enableAnnonation;
     }
 
-    public Class getHibernateGroup() {
-        return hibernateGroup;
-    }
 
-    public MockConfig setHibernateGroup(Class group) {
-        this.hibernateGroup = group;
+    public MockConfig setCustomSizeRange(Integer order, int[] range) {
+        this.customSizeRange.put(order, range);
         return this;
     }
 
-
-    public void registerFieldSize(int[] sizeRange) {
-        beanFieldsSizeRange.put("beanField", sizeRange);
+    public int[] getCustomSizeRange(Integer order) {
+        return customSizeRange.get(order);
     }
 
-    public int[] getFieldSizeRange() {
-        return beanFieldsSizeRange.get("beanField");
+    public void putTempSizeRange(int[] range) {
+        tempSizeRange.put("temp", range);
     }
+
+    public int[] getTempSizeRange() {
+        return tempSizeRange.get("temp");
+    }
+
+
 }

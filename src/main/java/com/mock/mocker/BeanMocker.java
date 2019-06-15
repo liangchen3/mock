@@ -5,7 +5,6 @@ import com.mock.MockException;
 import com.mock.Mocker;
 import com.mock.annotation.MockIgnore;
 import com.mock.util.ReflectionUtils;
-import org.hibernate.validator.constraints.Length;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -38,9 +37,6 @@ public class BeanMocker implements Mocker<Object> {
           Field field = entry.getKey();
           if (field.isAnnotationPresent(MockIgnore.class)) {
             continue;
-          }
-          if (field.isAnnotationPresent(Length.class)){
-              
           }
           ReflectionUtils
               .setRefValue(result, entry.getValue(), new BaseMocker(field.getGenericType()).mock(mockConfig));

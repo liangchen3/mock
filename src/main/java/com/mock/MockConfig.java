@@ -14,6 +14,7 @@ import com.mock.mocker.LongMocker;
 import com.mock.mocker.ShortMocker;
 import com.mock.mocker.StringMocker;
 
+import javax.validation.groups.Default;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -67,7 +68,7 @@ public class MockConfig {
     private static final StringMocker STRING_MOCKER = new StringMocker();
     private static final DateMocker DATE_MOCKER = new DateMocker("1970-01-01", "2100-12-31");
 
-
+    private Map<String, int[]> beanFieldsSizeRange = new HashMap<>();
     /**
      * 默认为中文
      */
@@ -94,6 +95,8 @@ public class MockConfig {
     private String[] dateRange = {"1970-01-01", "2100-12-31"};
     private int[] sizeRange = {2, 20};
     private boolean enabledCircle = false;
+    private boolean enableHibernateAnnonation = false;
+    private Class hibernateGroup = Default.class;
 
     private char[] charSeed =
             {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k',
@@ -274,5 +277,32 @@ public class MockConfig {
     public MockConfig setStringEnum(StringEnum stringEnum) {
         this.stringEnum = stringEnum;
         return this;
+    }
+
+    public MockConfig setEnableHibernate(boolean enabledHibernate) {
+        this.enableHibernateAnnonation = enabledHibernate;
+        return this;
+    }
+
+    public boolean isEnableHibernateAnnonation() {
+        return enableHibernateAnnonation;
+    }
+
+    public Class getHibernateGroup() {
+        return hibernateGroup;
+    }
+
+    public MockConfig setHibernateGroup(Class group) {
+        this.hibernateGroup = group;
+        return this;
+    }
+
+
+    public void registerFieldSize(int[] sizeRange) {
+        beanFieldsSizeRange.put("beanField", sizeRange);
+    }
+
+    public int[] getFieldSizeRange() {
+        return beanFieldsSizeRange.get("beanField");
     }
 }

@@ -3,8 +3,10 @@ package com.mock.bean;
 import org.hibernate.validator.constraints.Length;
 
 public class TransDetail {
-    @Length(min = 5, max = 5, message = "平台流水号最大长度为5")
+    @Length(min = 5, max = 5, message = "平台流水号最大长度为5", groups = {update.class})
     private String sysTrxid;//平台流水号
+    //    @Length(min = 5, max = 5, message = "平台流水号最大长度为5")
+    @Length(min = 14, max = 14, groups = {update.class})
     private String msanTrxid;//外围系统流水号
     private String batchNo;//平台批次号
     private String detailNo;//平台批次明细号

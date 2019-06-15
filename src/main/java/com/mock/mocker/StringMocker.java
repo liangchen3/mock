@@ -45,7 +45,13 @@ public class StringMocker implements Mocker<String> {
      * @return
      */
     private String mockerCharacter(MockConfig mockConfig) {
-        int size = RandomUtils.nextSize(mockConfig.getSizeRange()[0], mockConfig.getSizeRange()[1]);
+        int size;
+        //判断是否开启 hibernate注解赋值
+        if (!mockConfig.isEnableHibernateAnnonation()) {
+            size = RandomUtils.nextSize(mockConfig.getSizeRange()[0], mockConfig.getSizeRange()[1]);
+        } else {
+            size = RandomUtils.nextSize(mockConfig.getFieldSizeRange()[0], mockConfig.getFieldSizeRange()[1]);
+        }
         String[] stringSeed = mockConfig.getStringSeed();
         StringBuilder sb = new StringBuilder(size);
         for (int i = 0; i < size; i++) {

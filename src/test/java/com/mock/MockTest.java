@@ -467,7 +467,9 @@ public class MockTest {
                 .sizeRange(10, 10)
                 .stringSeed("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
                 .charSeed((char) 97, (char) 98)
-                .setStringEnum(MockConfig.StringEnum.CHARACTER);
+                .setStringEnum(MockConfig.StringEnum.CHARACTER)
+                .setEnableHibernate(true)
+                .setHibernateGroup(update.class);
 
         TransDetail transDetail = Mock.mock(new TypeKit<TransDetail>() {
         }, mockConfig);

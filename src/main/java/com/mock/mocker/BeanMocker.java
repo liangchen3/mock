@@ -36,9 +36,12 @@ public class BeanMocker implements Mocker<Object> {
                 // 模拟有setter方法的字段
                 for (Entry<Field, Method> entry : ReflectionUtils.fieldAndSetterMethod(currentClass).entrySet()) {
                     Field field = entry.getKey();
-                    if (field.isAnnotationPresent(MockIgnore.class)) {
-                        continue;
+                    if (mockConfig.isEnableAnnonation()) {
+                        if (field.isAnnotationPresent(MockIgnore.class)) {
+                            continue;
+                        }
                     }
+
                     setHibernate(entry, mockConfig);
                     ReflectionUtils
                             .setRefValue(result, entry.getValue(), new BaseMocker(field.getGenericType()).mock(mockConfig));

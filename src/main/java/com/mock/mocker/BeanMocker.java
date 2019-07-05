@@ -1,6 +1,6 @@
 package com.mock.mocker;
 
-import com.mock.MockConfig;
+import com.mock.config.MockConfig;
 import com.mock.MockException;
 import com.mock.Mocker;
 import com.mock.annotation.MockIgnore;
@@ -42,9 +42,11 @@ public class BeanMocker implements Mocker<Object> {
                         }
                     }
 
-                    setHibernate(entry, mockConfig);
-                    ReflectionUtils
-                            .setRefValue(result, entry.getValue(), new BaseMocker(field.getGenericType()).mock(mockConfig));
+                    //判断有没有MockRule注解
+                    setAnnotation(result, entry, mockConfig);
+                    //判断有没有需要特殊处理的字段
+                    setCustomedField(result, entry, mockConfig);
+
                 }
             }
             return result;
@@ -54,16 +56,16 @@ public class BeanMocker implements Mocker<Object> {
     }
 
     /**
-     * 根据hibernate注解定制化的给属性设置值
+     * 根据注解定制化的给属性设置值
      *
      * @param entry
      * @param mockConfig
      */
-    private void setHibernate(Entry<Field, Method> entry, MockConfig mockConfig) {
+    private void setAnnotation(Object result, Entry<Field, Method> entry, MockConfig mockConfig) throws Exception {
         //判断是否开启 注解赋值
-        if (!mockConfig.isEnableAnnonation()) {
-            return;
-        }
+//        if (!mockConfig.isEnableAnnonation()) {
+//            return;
+//        }
 
         Field field = entry.getKey();
         if (field.isAnnotationPresent(MockRule.class)) {
@@ -81,6 +83,28 @@ public class BeanMocker implements Mocker<Object> {
             mockConfig.putTempSizeRange(sizeRange);
         } else {
             mockConfig.putTempSizeRange(mockConfig.getSizeRange());
+        }
+
+        ReflectionUtils
+                .setRefValue(result, entry.getValue(), new BaseMocker(field.getGenericType()).mock(mockConfig));
+    }
+
+    /**
+     * 判断有没有需要特殊处理的字段
+     *
+     * @param entry
+     * @param mockConfig
+     */
+    private void setCustomedField(Object result, Entry<Field, Method> entry, MockConfig mockConfig) throws Exception {
+        Field field = entry.getKey();
+        String fieldName = field.getName();
+        if (null == mockConfig.getCustomConfig()) {
+            return;
+        }
+        Object fieldValue = mockConfig.getCustomConfig().getField(fieldName);
+        if (null != fieldValue) {
+            ReflectionUtils
+                    .setRefValue(result, entry.getValue(), fieldValue);
         }
     }
 

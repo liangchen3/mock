@@ -1,6 +1,7 @@
-package com.mock;
+package com.mock.config;
 
 
+import com.mock.Mocker;
 import com.mock.mocker.BigDecimalMocker;
 import com.mock.mocker.BigIntegerMocker;
 import com.mock.mocker.BooleanMocker;
@@ -68,7 +69,10 @@ public class MockConfig {
     private static final StringMocker STRING_MOCKER = new StringMocker();
     private static final DateMocker DATE_MOCKER = new DateMocker("1970-01-01", "2100-12-31");
 
-
+    /**
+     * 定制化配置
+     */
+    private AbstractBeanConfig customConfig;
     /**
      * 定制化数据大小范围
      */
@@ -314,5 +318,11 @@ public class MockConfig {
         return tempSizeRange.get("temp");
     }
 
+    public AbstractBeanConfig getCustomConfig() {
+        return customConfig;
+    }
 
+    public void setCustomConfig(AbstractBeanConfig customConfig) {
+        this.customConfig = customConfig;
+    }
 }

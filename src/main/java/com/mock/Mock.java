@@ -1,5 +1,6 @@
 package com.mock;
 
+import com.mock.config.MockConfig;
 import com.mock.mocker.BaseMocker;
 
 /**

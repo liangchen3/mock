@@ -1,6 +1,6 @@
 package com.mock.mocker;
 
-import com.mock.MockConfig;
+import com.mock.config.MockConfig;
 import com.mock.Mocker;
 
 import java.lang.reflect.ParameterizedType;

@@ -1,6 +1,6 @@
 package com.mock.mocker;
 
-import com.mock.MockConfig;
+import com.mock.config.MockConfig;
 import com.mock.Mocker;
 import com.mock.util.RandomUtils;
 import java.lang.reflect.Array;

@@ -3,6 +3,7 @@ package com.mock;
 import com.mock.bean.*;
 import com.mock.bean.circular.AXB;
 import com.mock.bean.enums.DayEnum;
+import com.mock.config.MockConfig;
 import com.mock.util.JsonUtil;
 import org.junit.Test;
 

@@ -1,5 +1,7 @@
 package com.mock;
 
+import com.mock.config.MockConfig;
+
 /**
  * 模拟器接口
  */

@@ -9,7 +9,6 @@ import com.alibaba.fastjson.JSONObject;
  */
 public class JsonUtil {
 
-    
     /**
      * 对象转string
      * @param obj 对象

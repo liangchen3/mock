@@ -1,8 +1,8 @@
 package com.mock.mocker;
 
-import com.mock.config.MockConfig;
+
 import com.mock.Mocker;
-import com.mock.util.RandomUtils;
+import com.mock.config.DataConfig;
 
 import java.math.BigInteger;
 
@@ -10,10 +10,9 @@ import java.math.BigInteger;
  * BigInteger对象模拟器
  */
 public class BigIntegerMocker implements Mocker<BigInteger> {
-
-  @Override
-  public BigInteger mock(MockConfig mockConfig) {
-    return BigInteger.valueOf(RandomUtils.nextLong(mockConfig.getLongRange()[0], mockConfig.getLongRange()[1]));
-  }
+    @Override
+    public BigInteger mock(DataConfig mockConfig) {
+        return BigInteger.valueOf(mockConfig.globalConfig().getMocker(Long.class).mock(mockConfig));
+    }
 
 }

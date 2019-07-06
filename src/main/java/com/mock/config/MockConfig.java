@@ -2,59 +2,21 @@ package com.mock.config;
 
 
 import com.mock.Mocker;
-import com.mock.mocker.BigDecimalMocker;
-import com.mock.mocker.BigIntegerMocker;
-import com.mock.mocker.BooleanMocker;
-import com.mock.mocker.ByteMocker;
-import com.mock.mocker.CharacterMocker;
-import com.mock.mocker.DateMocker;
-import com.mock.mocker.DoubleMocker;
-import com.mock.mocker.FloatMocker;
-import com.mock.mocker.IntegerMocker;
-import com.mock.mocker.LongMocker;
-import com.mock.mocker.ShortMocker;
-import com.mock.mocker.StringMocker;
+import com.mock.annotation.MockIgnore;
+import com.mock.mocker.*;
+import com.mock.util.FieldMatchingResolver;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 /**
  * 模拟数据配置类
  */
 public class MockConfig {
-    public enum StringEnum {
-        /**
-         * uuid
-         */
-        UUID,
-        /**
-         * 随机长度的字符
-         */
-        CHARACTER,
-        /**
-         * 汉字词语，句子
-         */
-        CHINESE,
-        /**
-         * http连接
-         */
-        HTTP,
-        /**
-         * https连接
-         */
-        HTTPS,
-        /**
-         * 超大文本
-         */
-        TEXT
-    }
 
     private static final ByteMocker BYTE_MOCKER = new ByteMocker();
     private static final BooleanMocker BOOLEAN_MOCKER = new BooleanMocker();
@@ -67,25 +29,9 @@ public class MockConfig {
     private static final BigIntegerMocker BIG_INTEGER_MOCKER = new BigIntegerMocker();
     private static final BigDecimalMocker BIG_DECIMAL_MOCKER = new BigDecimalMocker();
     private static final StringMocker STRING_MOCKER = new StringMocker();
-    private static final DateMocker DATE_MOCKER = new DateMocker("1970-01-01", "2100-12-31");
+    private static final DateMocker DATE_MOCKER = new DateMocker();
+    private boolean enabledCircle = false;
 
-    /**
-     * 定制化配置
-     */
-    private AbstractBeanConfig customConfig;
-    /**
-     * 定制化数据大小范围
-     */
-    private Map<Integer, int[]> customSizeRange = new ConcurrentHashMap<>();
-    /**
-     * 临时存放数据大小范围的map ，  ConcurrentHashMap是线程安全的Map
-     * 最重要的是性能要比上HashMap,SynchronizedMap要快太多，推荐使用
-     */
-    private Map<String, int[]> tempSizeRange = new ConcurrentHashMap<>();
-    /**
-     * 默认为中文
-     */
-    private StringEnum stringEnum = StringEnum.CHINESE;
     /**
      * Bean缓存
      */
@@ -99,25 +45,24 @@ public class MockConfig {
      */
     private Map<String, Enum[]> enumCache = new HashMap<>();
     private Map<Class<?>, Mocker> mockerContext = new HashMap<>();
-    private byte[] byteRange = {0, 127};
-    private short[] shortRange = {0, 1000};
-    private int[] intRange = {0, 10000};
-    private float[] floatRange = {0.0f, 10000.00f};
-    private double[] doubleRange = {0.0, 10000.00};
-    private long[] longRange = {0L, 10000L};
-    private String[] dateRange = {"1970-01-01", "2100-12-31"};
-    private int[] sizeRange = {2, 20};
-    private boolean enabledCircle = false;
-    private boolean enableAnnonation = false;
 
-    private char[] charSeed =
-            {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k',
-                    'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F',
-                    'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
-    private String[] stringSeed =
-            {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
-                    "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F",
-                    "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
+    /**
+     * 数据模拟范围全局配置
+     */
+    private DataConfig GLOBAL_DATA_CONFIG = new DataConfig(this);
+
+    /**
+     * 数据模拟范围局部特定配置
+     * [key] = ClassName[_Field]
+     * [value] = DataConfig
+     */
+    private Map<String, DataConfig> partDataConfig = new HashMap<>();
+
+    /**
+     * 排除模拟对象
+     */
+    private Map<Class<?>, List<String>> excludeConfig = new HashMap<>();
+
 
     public MockConfig() {
         registerMocker(BYTE_MOCKER, byte.class, Byte.class);
@@ -132,6 +77,15 @@ public class MockConfig {
         registerMocker(BIG_DECIMAL_MOCKER, BigDecimal.class);
         registerMocker(STRING_MOCKER, String.class);
         registerMocker(DATE_MOCKER, Date.class);
+    }
+
+    /**
+     * 提供实例化工厂
+     *
+     * @return
+     */
+    public static MockConfig newInstance() {
+        return new MockConfig();
     }
 
     public void cacheBean(String name, Object bean) {
@@ -177,152 +131,372 @@ public class MockConfig {
         return typeVariableCache.get(name);
     }
 
-    public MockConfig byteRange(byte min, byte max) {
-        this.byteRange[0] = min;
-        this.byteRange[1] = max;
-        return this;
-    }
 
-    public MockConfig shortRange(short min, short max) {
-        this.shortRange[0] = min;
-        this.shortRange[1] = max;
-        return this;
-    }
-
-    public MockConfig intRange(int min, int max) {
-        this.intRange[0] = min;
-        this.intRange[1] = max;
-        return this;
-    }
-
-    public MockConfig floatRange(float min, float max) {
-        this.floatRange[0] = min;
-        this.floatRange[1] = max;
-        return this;
-    }
-
-    public MockConfig doubleRange(double min, double max) {
-        this.doubleRange[0] = min;
-        this.doubleRange[1] = max;
-        return this;
-    }
-
-    public MockConfig longRange(long min, long max) {
-        this.longRange[0] = min;
-        this.longRange[1] = max;
-        return this;
-    }
-
-    public MockConfig dateRange(String min, String max) {
-        this.dateRange[0] = min;
-        this.dateRange[1] = max;
-        registerMocker(new DateMocker(min, max), Date.class);
-        return this;
-    }
-
-    public MockConfig sizeRange(int min, int max) {
-        this.sizeRange[0] = min;
-        this.sizeRange[1] = max;
-        return this;
-    }
-
-    public MockConfig stringSeed(String... stringSeed) {
-        this.stringSeed = stringSeed;
-        return this;
-    }
-
-    public MockConfig charSeed(char... charSeed) {
-        this.charSeed = charSeed;
-        return this;
-    }
-
-    public byte[] getByteRange() {
-        return byteRange;
-    }
-
-    public short[] getShortRange() {
-        return shortRange;
-    }
-
-    public int[] getIntRange() {
-        return intRange;
-    }
-
-    public float[] getFloatRange() {
-        return floatRange;
-    }
-
-    public double[] getDoubleRange() {
-        return doubleRange;
-    }
-
-    public long[] getLongRange() {
-        return longRange;
-    }
-
-    public int[] getSizeRange() {
-        return sizeRange;
-    }
-
-    public char[] getCharSeed() {
-        return charSeed;
-    }
-
-    public String[] getStringSeed() {
-        return stringSeed;
-    }
-
-    public void registerMocker(Mocker mocker, Class<?>... clazzs) {
-        for (Class<?> clazz : clazzs) {
+    public <T> void registerMocker(Mocker mocker, Class<T>... clazzs) {
+        for (Class<T> clazz : clazzs) {
             mockerContext.put(clazz, mocker);
         }
     }
 
-    public Mocker getMocker(Class<?> clazz) {
+    public <T> Mocker<T> getMocker(Class<T> clazz) {
         return mockerContext.get(clazz);
     }
 
-    public StringEnum getStringEnum() {
-        return stringEnum;
-    }
-
-    public MockConfig setStringEnum(StringEnum stringEnum) {
-        this.stringEnum = stringEnum;
+    /**
+     * 配置转路器 - 切换设置全局配置
+     *
+     * @return
+     */
+    public MockConfig globalConfig() {
         return this;
     }
 
-    public MockConfig setEnableAnnonation(boolean enabledAnnonation) {
-        this.enableAnnonation = enabledAnnonation;
+    /**
+     * 配置转路器 - 切换设置全局字段模拟配置
+     *
+     * @return
+     */
+    public DataConfig subConfig(String... fieldNames) {
+        return this.subConfig(DataConfig.class, fieldNames);
+    }
+
+    /**
+     * 配置转路器 - 切换设置局部Class字段模拟配置
+     *
+     * @return
+     */
+    public <T> DataConfig subConfig(Class<T> clazz, String... fieldNames) {
+        /**
+         * fieldNames 长度为0 代表是对某各类所有字段的配置
+         */
+        String clazzName = clazz.getName();
+        DataConfig config = partDataConfig.get(clazzName);
+        if (fieldNames.length == 0) {
+            if (config == null) {
+                config = new DataConfig(this);
+                partDataConfig.put(clazzName, config);
+            }
+            return config;
+        }
+        /**
+         * fieldNames 长度不为0 代表是对某各类某几个字段的配置
+         */
+        config = null;
+        for (String fieldName : fieldNames) {
+            config = partDataConfig.get(clazzName + "#" + fieldName);
+            if (config != null) {
+                break;
+            }
+        }
+        if (config == null) {
+            config = new DataConfig(this);
+        }
+        for (String fieldName : fieldNames) {
+            partDataConfig.put(clazzName + "#" + fieldName, config);
+        }
+        return config;
+    }
+
+    /**
+     * 获取指定配置，如果没有则返回全局配置
+     *
+     * @param clazz
+     * @return
+     */
+    public <T> DataConfig getDataConfig(Class<T> clazz, String fieldName) {
+
+        Set<String> configKeys = partDataConfig.keySet();
+        String clazzName = clazz.getName();
+        /**
+         * 如果字段为空，则返回累的配置
+         */
+        if (fieldName == null) {
+            return partDataConfig.get(clazzName) == null ? GLOBAL_DATA_CONFIG : partDataConfig.get(clazzName);
+        }
+
+        /**
+         * 优先级1 ： clazz + fieldName
+         */
+        DataConfig config = partDataConfig.get(clazzName + "#" + fieldName);
+        /**
+         * 查找不到则模式匹配
+         */
+        if (config == null) {
+            for (String fieldPatternKey : configKeys) {
+                if (fieldPatternKey.startsWith(clazzName + "#")) {
+                    if (FieldMatchingResolver.isMatchPattern(fieldName, fieldPatternKey.split("#")[1])) {
+                        return partDataConfig.get(fieldPatternKey);
+                    }
+                }
+            }
+        }
+
+
+        /**
+         * 优先级2 ： clazz
+         */
+        if (config == null) {
+            config = partDataConfig.get(clazzName);
+        }
+
+        /**
+         * 优先级3 ： DataConfig.class + fieldName
+         */
+        if (config == null) {
+            clazzName = DataConfig.class.getName();
+            config = partDataConfig.get(clazzName + "#" + fieldName);
+        }
+        /**
+         * 查找不到则模式匹配
+         */
+        if (config == null) {
+            for (String fieldPatternKey : configKeys) {
+                if (fieldPatternKey.startsWith(clazzName + "#")) {
+                    if (FieldMatchingResolver.isMatchPattern(fieldName, fieldPatternKey.split("#")[1])) {
+                        return partDataConfig.get(fieldPatternKey);
+                    }
+                }
+            }
+        }
+
+        /**
+         * 优先级4 ： GLOBAL CONFIG
+         */
+        if (config == null) {
+            config = GLOBAL_DATA_CONFIG;
+        }
+        return config;
+    }
+
+    /**
+     * 获取全局配置
+     *
+     * @return
+     */
+    public DataConfig globalDataConfig() {
+        return this.GLOBAL_DATA_CONFIG;
+    }
+
+    /**
+     * 模拟数据排除某各类的某几个字段
+     */
+    public <T> MockConfig excludes(Class<T> clazz, String... fieldName) {
+        excludeConfig.put(clazz, Arrays.asList(fieldName));
         return this;
     }
 
-    public boolean isEnableAnnonation() {
-        return enableAnnonation;
-    }
-
-
-    public MockConfig setCustomSizeRange(Integer order, int[] range) {
-        this.customSizeRange.put(order, range);
+    /**
+     * 模拟数据全局排除某些字段名
+     *
+     * @param fieldNames
+     * @return
+     */
+    public MockConfig excludes(String... fieldNames) {
+        excludeConfig.put(MockIgnore.class, Arrays.asList(fieldNames));
         return this;
     }
 
-    public int[] getCustomSizeRange(Integer order) {
-        return customSizeRange.get(order);
+    /**
+     * 判断是否排除模拟某个类
+     */
+    public <T> boolean isConfigExcludeMock(Class<T> clazz) {
+        return this.excludeConfig.get(clazz) != null && this.excludeConfig.get(clazz).size() == 0;
     }
 
-    public void putTempSizeRange(int[] range) {
-        tempSizeRange.put("temp", range);
+
+    /**
+     * 判断是否排除模拟某个类的属性
+     */
+    public <T> boolean isConfigExcludeMock(Class<T> clazz, String fieldName) {
+        /**
+         * 优先配全字段名称
+         */
+        List<String> fieldsConfig1 = this.excludeConfig.get(clazz);
+        List<String> fieldsConfig2 = this.excludeConfig.get(MockIgnore.class);
+        List<String> fieldsConfig = new ArrayList<>();
+        if (fieldsConfig1 != null) {
+            fieldsConfig.addAll(fieldsConfig1);
+        }
+        if (fieldsConfig2 != null) {
+            fieldsConfig.addAll(fieldsConfig2);
+        }
+        if (fieldsConfig.contains(fieldName)) {
+            return true;
+        } else {
+            boolean isExclude = false;
+            for (String fieldPattern : fieldsConfig) {
+                isExclude = FieldMatchingResolver.isMatchPattern(fieldName, fieldPattern);
+                if (isExclude) {
+                    return isExclude;
+                }
+            }
+            return isExclude;
+        }
+
     }
 
-    public int[] getTempSizeRange() {
-        return tempSizeRange.get("temp");
+    /**
+     * ********************************
+     * 设置全局配置
+     * ********************************
+     */
+
+    public MockConfig byteRange(byte min, byte max) {
+        GLOBAL_DATA_CONFIG.byteRange(min, max);
+        return this;
     }
 
-    public AbstractBeanConfig getCustomConfig() {
-        return customConfig;
+    public MockConfig booleanSeed(boolean... booleanSeed) {
+        GLOBAL_DATA_CONFIG.booleanSeed(booleanSeed);
+        return this;
     }
 
-    public void setCustomConfig(AbstractBeanConfig customConfig) {
-        this.customConfig = customConfig;
+    public MockConfig shortRange(short min, short max) {
+        GLOBAL_DATA_CONFIG.shortRange(min, max);
+        return this;
     }
+
+    public MockConfig intRange(int min, int max) {
+        GLOBAL_DATA_CONFIG.intRange(min, max);
+        return this;
+    }
+
+    public MockConfig floatRange(float min, float max) {
+        GLOBAL_DATA_CONFIG.floatRange(min, max);
+        return this;
+    }
+
+    public MockConfig doubleRange(double min, double max) {
+        GLOBAL_DATA_CONFIG.doubleRange(min, max);
+        return this;
+    }
+
+    public MockConfig decimalScale(int scale) {
+        GLOBAL_DATA_CONFIG.decimalScale(scale);
+        return this;
+    }
+
+    public MockConfig longRange(long min, long max) {
+        GLOBAL_DATA_CONFIG.longRange(min, max);
+        return this;
+    }
+
+    public MockConfig dateRange(String min, String max) {
+        GLOBAL_DATA_CONFIG.dateRange(min, max);
+        return this;
+    }
+
+    public MockConfig sizeRange(int min, int max) {
+        GLOBAL_DATA_CONFIG.sizeRange(min, max);
+        return this;
+    }
+
+    public MockConfig stringSeed(String... stringSeed) {
+        GLOBAL_DATA_CONFIG.stringSeed(stringSeed);
+        return this;
+    }
+
+    public MockConfig charSeed(char... charSeed) {
+        GLOBAL_DATA_CONFIG.charSeed(charSeed);
+        return this;
+    }
+
+    /**
+     * 根据正则表达是模拟数字类型，
+     * 全局慎用，小数、整数、短整数等都会使用此表达式生成，有可能会超范围，
+     * 建议通过转路器指定特定的字段或类型使用此功能
+     *
+     * @param numberRegex
+     * @return
+     */
+    @Deprecated
+    public MockConfig numberXeger(String numberRegex) {
+        GLOBAL_DATA_CONFIG.numberXeger(numberRegex);
+        return this;
+    }
+
+    public MockConfig numberRegex(String numberRegex) {
+        GLOBAL_DATA_CONFIG.numberRegex(numberRegex);
+        return this;
+    }
+
+    /**
+     * 根据正则表达是模拟字符串类型，
+     *
+     * @param stringRegex
+     * @return
+     */
+    @Deprecated
+    public MockConfig stringXeger(String stringRegex) {
+        GLOBAL_DATA_CONFIG.stringXeger(stringRegex);
+        return this;
+    }
+
+    public MockConfig stringRegex(String stringRegex) {
+        GLOBAL_DATA_CONFIG.stringRegex(stringRegex);
+        return this;
+    }
+
+    /**
+     * ********************************
+     * 获取全局配置
+     * ********************************
+     */
+
+    public byte[] byteRange() {
+        return GLOBAL_DATA_CONFIG.byteRange();
+    }
+
+    public boolean[] booleanSeed() {
+        return GLOBAL_DATA_CONFIG.booleanSeed();
+    }
+
+    public short[] shortRange() {
+        return GLOBAL_DATA_CONFIG.shortRange();
+    }
+
+    public int[] intRange() {
+        return GLOBAL_DATA_CONFIG.intRange();
+    }
+
+    public float[] floatRange() {
+        return GLOBAL_DATA_CONFIG.floatRange();
+    }
+
+    public double[] doubleRange() {
+        return GLOBAL_DATA_CONFIG.doubleRange();
+    }
+
+    public int decimalScale() {
+        return GLOBAL_DATA_CONFIG.decimalScale();
+    }
+
+    public long[] longRange() {
+        return GLOBAL_DATA_CONFIG.longRange();
+    }
+
+    public String[] dateRange() {
+        return GLOBAL_DATA_CONFIG.dateRange();
+    }
+
+    public int[] sizeRange() {
+        return GLOBAL_DATA_CONFIG.sizeRange();
+    }
+
+    public String[] stringSeed() {
+        return GLOBAL_DATA_CONFIG.stringSeed();
+    }
+
+    public char[] charSeed() {
+        return GLOBAL_DATA_CONFIG.charSeed();
+    }
+
+    public String numberRegex() {
+        return GLOBAL_DATA_CONFIG.numberRegex();
+    }
+
+    public String stringRegex() {
+        return GLOBAL_DATA_CONFIG.stringRegex();
+    }
+
 }

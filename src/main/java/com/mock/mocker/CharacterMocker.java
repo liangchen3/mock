@@ -1,7 +1,8 @@
 package com.mock.mocker;
 
-import com.mock.config.MockConfig;
+
 import com.mock.Mocker;
+import com.mock.config.DataConfig;
 import com.mock.util.RandomUtils;
 
 /**
@@ -9,10 +10,10 @@ import com.mock.util.RandomUtils;
  */
 public class CharacterMocker implements Mocker<Character> {
 
-  @Override
-  public Character mock(MockConfig mockConfig) {
-    char[] charSeed = mockConfig.getCharSeed();
-    return charSeed[RandomUtils.nextInt(0, charSeed.length)];
-  }
+    @Override
+    public Character mock(DataConfig mockConfig) {
+        char[] charSeed = mockConfig.charSeed();
+        return charSeed[RandomUtils.nextInt(0, charSeed.length)];
+    }
 
 }

@@ -1,40 +1,36 @@
 package com.mock.mocker;
 
-import com.mock.config.MockConfig;
+
 import com.mock.MockException;
 import com.mock.Mocker;
+import com.mock.config.DataConfig;
 import com.mock.util.RandomUtils;
 
-import java.lang.reflect.Field;
-
 /**
- * Double对象模拟器
+ * Enum对象模拟器
  */
 public class EnumMocker<T extends Enum> implements Mocker<Object> {
 
-  private Class<?> clazz;
+    private Class<?> clazz;
 
-  public EnumMocker(Class<?> clazz) {
-    this.clazz = clazz;
-  }
-
-  @Override
-  public T mock(MockConfig mockConfig) {
-    Enum[] enums = mockConfig.getcacheEnum(clazz.getName());
-    if (enums == null) {
-      try {
-        Field field = clazz.getDeclaredField("$VALUES");
-        field.setAccessible(true);
-        enums = (Enum[]) field.get(clazz);
-        if (enums.length == 0) {
-          throw new MockException("空的enum不能模拟");
-        }
-        mockConfig.cacheEnum(clazz.getName(), enums);
-      } catch (NoSuchFieldException | IllegalAccessException e) {
-        throw new MockException(e);
-      }
+    public EnumMocker(Class<?> clazz) {
+        this.clazz = clazz;
     }
-    return (T) enums[RandomUtils.nextInt(0, enums.length)];
-  }
+
+    @Override
+    public T mock(DataConfig mockConfig) {
+
+        Enum[] enums = mockConfig.globalConfig().getcacheEnum(clazz.getName());
+        if (enums == null) {
+            //  Field field = clazz.getDeclaredField("$VALUES");
+            // field.setAccessible(true);
+            enums = (Enum[]) clazz.getEnumConstants();
+            if (enums.length == 0) {
+                throw new MockException("空的enum不能模拟");
+            }
+            mockConfig.globalConfig().cacheEnum(clazz.getName(), enums);
+        }
+        return (T) enums[RandomUtils.nextInt(0, enums.length)];
+    }
 
 }

@@ -167,7 +167,7 @@ public class MockDataTest {
                 .subConfig(BasicBean.class, "long*", "*date", "*string*")
                 .longRange(12, 13)
                 .dateRange("2018-11-20", "2018-11-30")
-                .stringSeed("SAVED", "REJECT", "APPROVED")
+                .stringSeed("SAVED", "REJECT", "APPROVED").stringSeed("****", "&&&", "AAA")
                 .sizeRange(1, 1)
 
                 // 全局配置
@@ -274,6 +274,47 @@ public class MockDataTest {
     public void testLombokBeanMock() {
         LombokBean lombokBean = Mock.mock(LombokBean.class);
         System.out.println(JSON.toJSONString(lombokBean, true));
+    }
+
+    /**
+     * 测试Lombok对象
+     */
+    @Test
+    public void tesStringBeanMock() {
+        MockConfig mockConfig = new MockConfig()
+                // 全局配置
+                .globalConfig()
+                .sizeRange(1, 1)
+                .charSeed((char) 97, (char) 98)
+                .byteRange((byte) 0, Byte.MAX_VALUE)
+                .shortRange((short) 0, Short.MAX_VALUE)
+
+                // 某个类的某些字段（long开头的字段、date结尾的字段、包含string的字段）配置。
+                .subConfig(StringBean.class, "long*", "string*", "*4*")
+                .longRange(12, 13)
+                .dateRange("2018-11-20", "2018-11-30")
+                .stringSeed("SAVED", "REJECT", "APPROVED").stringSeed("****", "&&&", "AAA")
+                .sizeRange(1, 1)
+
+                // 某个类的某些字段（long开头的字段、date结尾的字段、包含string的字段）配置。
+                .subConfig(StringBean.class, "long*", "string*", "*5")
+                .longRange(12, 13)
+                .dateRange("2018-11-20", "2018-11-30")
+                .stringSeed("SAVED", "REJECT", "APPROVED").stringSeed("****", "&&&", "AAA")
+                .sizeRange(2, 2)
+
+                // 某个类的某些字段（long开头的字段、date结尾的字段、包含string的字段）配置。
+                .subConfig(StringBean.class, "long*", "string5", "*6")
+                .longRange(12, 13)
+                .dateRange("2018-11-20", "2018-11-30")
+                .stringSeed("@", "#", "$").stringSeed("1", "2", "3")
+                .sizeRange(1, 1)
+
+                .globalConfig();
+
+        StringBean stringBean = Mock.mock(StringBean.class, mockConfig);
+        assertNotNull(stringBean);
+        System.out.println(JSON.toJSONString(stringBean, true));
     }
 
 

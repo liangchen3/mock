@@ -181,16 +181,7 @@ public class MockConfig {
         /**
          * fieldNames 长度不为0 代表是对某各类某几个字段的配置
          */
-        config = null;
-        for (String fieldName : fieldNames) {
-            config = partDataConfig.get(clazzName + "#" + fieldName);
-            if (config != null) {
-                break;
-            }
-        }
-        if (config == null) {
-            config = new DataConfig(this);
-        }
+        config = new DataConfig(this);
         for (String fieldName : fieldNames) {
             partDataConfig.put(clazzName + "#" + fieldName, config);
         }
@@ -483,7 +474,7 @@ public class MockConfig {
         return GLOBAL_DATA_CONFIG.sizeRange();
     }
 
-    public String[] stringSeed() {
+    public List<String[]> stringSeed() {
         return GLOBAL_DATA_CONFIG.stringSeed();
     }
 

@@ -185,7 +185,7 @@ public class MockConfig {
 
         //获取所有符合模糊匹配的类字段
         //todo
-        List<String> allFieldName = new ArrayList<>();
+        List<String> allFieldNames = new ArrayList<>();
         for (Class<?> currentClass = clazz; currentClass != Object.class; currentClass = currentClass.getSuperclass()) {
             // 模拟有setter方法的字段
             try {
@@ -194,9 +194,9 @@ public class MockConfig {
                     String fieldName = field.getName();
                     for (String fieldPatternName : fieldNames) {
                         if (FieldMatchingResolver.isMatchPattern(fieldName, fieldPatternName)) {
-                            allFieldName.add(fieldName);
+                            allFieldNames.add(fieldName);
                         } else if (fieldPatternName.equals(fieldName)) {
-                            allFieldName.add(fieldName);
+                            allFieldNames.add(fieldName);
                         }
                     }
                 }
@@ -204,10 +204,10 @@ public class MockConfig {
                 e.printStackTrace();
             }
         }
-        String[] fieldNameStrs = new String[allFieldName.size()];
-        allFieldName.toArray(fieldNameStrs);
+        String[] fieldNameStrArry = new String[allFieldNames.size()];
+        allFieldNames.toArray(fieldNameStrArry);
 
-        for (String fieldName : fieldNameStrs) {
+        for (String fieldName : fieldNameStrArry) {
             partDataConfig.put(clazzName + "#" + fieldName, config);
         }
         return config;

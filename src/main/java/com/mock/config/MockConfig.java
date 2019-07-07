@@ -5,10 +5,10 @@ import com.mock.Mocker;
 import com.mock.annotation.MockIgnore;
 import com.mock.mocker.*;
 import com.mock.util.FieldMatchingResolver;
+import com.mock.util.ReflectionUtils;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import java.beans.IntrospectionException;
+import java.lang.reflect.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
@@ -182,7 +182,32 @@ public class MockConfig {
          * fieldNames 长度不为0 代表是对某各类某几个字段的配置
          */
         config = new DataConfig(this);
-        for (String fieldName : fieldNames) {
+
+        //获取所有符合模糊匹配的类字段
+        //todo
+        List<String> allFieldName = new ArrayList<>();
+        for (Class<?> currentClass = clazz; currentClass != Object.class; currentClass = currentClass.getSuperclass()) {
+            // 模拟有setter方法的字段
+            try {
+                for (Map.Entry<Field, Method> entry : ReflectionUtils.fieldAndSetterMethod(currentClass).entrySet()) {
+                    Field field = entry.getKey();
+                    String fieldName = field.getName();
+                    for (String fieldPatternName : fieldNames) {
+                        if (FieldMatchingResolver.isMatchPattern(fieldName, fieldPatternName)) {
+                            allFieldName.add(fieldName);
+                        } else if (fieldPatternName.equals(fieldName)) {
+                            allFieldName.add(fieldName);
+                        }
+                    }
+                }
+            } catch (IntrospectionException e) {
+                e.printStackTrace();
+            }
+        }
+        String[] fieldNameStrs = new String[allFieldName.size()];
+        allFieldName.toArray(fieldNameStrs);
+
+        for (String fieldName : fieldNameStrs) {
             partDataConfig.put(clazzName + "#" + fieldName, config);
         }
         return config;

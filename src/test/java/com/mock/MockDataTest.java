@@ -310,6 +310,13 @@ public class MockDataTest {
                 .stringSeed("@", "#", "$").stringSeed("1", "2", "3")
                 .sizeRange(1, 1)
 
+                // 某个类的某些字段（long开头的字段、date结尾的字段、包含string的字段）配置。
+                .subConfig(StringBean.class, "*3", "string4", "*6")
+                .longRange(12, 13)
+                .dateRange("2018-11-20", "2018-11-30")
+                .stringSeed("{", "(", "|").stringSeed("777", "888", "999")
+                .sizeRange(1, 1)
+
                 .globalConfig();
 
         StringBean stringBean = Mock.mock(StringBean.class, mockConfig);

@@ -52,6 +52,11 @@ public class MockConfig {
     private DataConfig GLOBAL_DATA_CONFIG = new DataConfig(this);
 
     /**
+     * 用户自定义'拦截'处理的配置   todo(这里的描述是否准确？)
+     */
+    private List<MockCustomConfig> customInterceptConfig = new ArrayList<>();
+
+    /**
      * 数据模拟范围局部特定配置
      * [key] = ClassName[_Field]
      * [value] = DataConfig
@@ -183,8 +188,7 @@ public class MockConfig {
          */
         config = new DataConfig(this);
 
-        //获取所有符合模糊匹配的类字段
-        //todo
+        //获取所有符合条件的类字段(包括1.模糊匹配 2.直接与类字段相等 两种情况)
         List<String> allFieldNames = new ArrayList<>();
         for (Class<?> currentClass = clazz; currentClass != Object.class; currentClass = currentClass.getSuperclass()) {
             // 模拟有setter方法的字段
@@ -276,12 +280,31 @@ public class MockConfig {
         }
 
         /**
-         * 优先级4 ： GLOBAL CONFIG
+         * 优先级4 ：用户自定义DataConfig
+         */
+        int size = customInterceptConfig.size();
+        for (int i = 0; i < size; i++) {
+            config = customInterceptConfig.get(i).getDataConfig(clazz, fieldName);
+            if (config != null) {
+                break;
+            }
+        }
+
+        /**
+         * 优先级5 ： GLOBAL CONFIG
          */
         if (config == null) {
             config = GLOBAL_DATA_CONFIG;
         }
         return config;
+    }
+
+    /**
+     *
+     */
+    public MockConfig addCustomConfig(MockCustomConfig mockCustomConfig) {
+        customInterceptConfig.add(mockCustomConfig);
+        return this;
     }
 
     /**

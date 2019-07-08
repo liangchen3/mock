@@ -119,29 +119,29 @@ public class MockDataTest {
         assertNotNull(genericData);
     }
 
-    @Test
-    public void testMockConfig() {
-        MockConfig mockConfig = new MockConfig()
-                .byteRange((byte) 0, Byte.MAX_VALUE)
-                .shortRange((short) 0, Short.MAX_VALUE)
-                .intRange(0, Integer.MAX_VALUE)
-                .floatRange(0.0f, Float.MAX_EXPONENT)
-                .doubleRange(0.0, Double.MAX_VALUE)
-                .longRange(0, Long.MAX_VALUE)
-                .dateRange("2010-01-01", "2020-12-30")
-                .sizeRange(5, 10)
-                .stringSeed("a", "b", "c")
-                .charSeed((char) 97, (char) 98);
-        BasicBean basicBean = Mock.mock(BasicBean.class, mockConfig);
-        assertNotNull(basicBean);
-
-        try {
-            Mock.mock(BasicBean.class, new MockConfig().dateRange("20100101", "20301230"));
-            fail();
-        } catch (Exception e) {
-            // Ignore
-        }
-    }
+//    @Test
+//    public void testMockConfig() {
+//        MockConfig mockConfig = new MockConfig()
+//                .byteRange((byte) 0, Byte.MAX_VALUE)
+//                .shortRange((short) 0, Short.MAX_VALUE)
+//                .intRange(0, Integer.MAX_VALUE)
+//                .floatRange(0.0f, Float.MAX_EXPONENT)
+//                .doubleRange(0.0, Double.MAX_VALUE)
+//                .longRange(0, Long.MAX_VALUE)
+//                .dateRange("2010-01-01", "2020-12-30")
+//                .sizeRange(5, 10)
+//                .stringSeed("a", "b", "c")
+//                .charSeed((char) 97, (char) 98);
+//        BasicBean basicBean = Mock.mock(BasicBean.class, mockConfig);
+//        assertNotNull(basicBean);
+//
+//        try {
+//            Mock.mock(BasicBean.class, new MockConfig().dateRange("20100101", "20301230"));
+//            fail();
+//        } catch (Exception e) {
+//            // Ignore
+//        }
+//    }
 
     /**
      * 自定义配置测试
@@ -277,7 +277,7 @@ public class MockDataTest {
     }
 
     /**
-     * 测试Lombok对象
+     * 测试字段全是String类型的对象
      */
     @Test
     public void tesStringBeanMock() {
